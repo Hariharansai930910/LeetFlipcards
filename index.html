@@ -1,467 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetCode Flashcards</title>
-    <style>
-        /* Basic styles */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f2f5;
-            line-height: 1.6;
-        }
-        
-        header {
-            background-color: #1e293b;
-            color: white;
-            padding: 1rem;
-            text-align: center;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-        
-        h2 {
-            margin-bottom: 1rem;
-        }
-        
-        /* Topic grid */
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        .topic-card {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s, background-color 0.2s;
-        }
-        
-        .topic-card:hover {
-            background-color: #f8fafc;
-            transform: translateY(-2px);
-        }
-        
-        .topic-card.disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        .topic-card h3 {
-            margin-top: 0;
-            margin-bottom: 0.5rem;
-        }
-        
-        .topic-card p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-        
-        /* Flashcard section */
-        .flashcard-section {
-            display: none;
-        }
-        
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .navigation button {
-            background-color: #334155;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-        }
-        
-        .navigation button:hover {
-            background-color: #475569;
-        }
-        
-        .navigation button:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-        }
-        
-        .problem-counter {
-            color: #6b7280;
-        }
-        
-        /* Card */
-        .flip-card-container {
-            perspective: 1000px;
-            width: 100%;
-            max-width: 600px;
-            height: 600px;
-            margin: 0 auto;
-        }
-        
-        .flip-card {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-        
-        .flip-card.flipped {
-            transform: rotateY(180deg);
-        }
-        
-        .flip-card-front, .flip-card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            overflow: auto;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .flip-card-front {
-            background-color: white;
-        }
-        
-        .flip-card-back {
-            background-color: #1e293b;
-            color: white;
-            transform: rotateY(180deg);
-        }
-        
-        .card-header {
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .front-header {
-            background-color: #2563eb;
-            color: white;
-        }
-        
-        .back-header {
-            background-color: #1e293b;
-        }
-        
-        .difficulty {
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
-        }
-        
-        .easy { background-color: #22c55e; }
-        .medium { background-color: #f59e0b; }
-        .hard { background-color: #ef4444; }
-        
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .tab {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-        
-        .front-tabs .tab.active {
-            border-bottom-color: #2563eb;
-            color: #2563eb;
-        }
-        
-        .back-tabs .tab.active {
-            border-bottom-color: #60a5fa;
-            color: #60a5fa;
-        }
-        
-        .tab-content {
-            padding: 1rem;
-            height: calc(100% - 130px);
-            overflow: auto;
-        }
-        
-        .tab-pane {
-            display: none;
-        }
-        
-        .tab-pane.active {
-            display: block;
-        }
-        
-        pre {
-            background-color: #0f172a;
-            color: white;
-            padding: 1rem;
-            border-radius: 0.25rem;
-            overflow: auto;
-            font-family: monospace;
-            font-size: 0.875rem;
-        }
-        
-        .flip-hint {
-            position: absolute;
-            bottom: 1rem;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: #9ca3af;
-            font-size: 0.875rem;
-        }
-        
-        footer {
-            background-color: #1e293b;
-            color: white;
-            text-align: center;
-            padding: 1rem;
-            margin-top: 2rem;
-            font-size: 0.875rem;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>LeetCode Flashcards</h1>
-    </header>
-    
-    <div class="container">
-        <!-- Topic Selection -->
-        <div id="topic-section">
-            <h2>Select a Topic</h2>
-            <div id="topic-grid" class="topic-grid">
-                <!-- Topics will be populated by JavaScript -->
-            </div>
-        </div>
-        
-        <!-- Flashcard Section (initially hidden) -->
-        <div id="flashcard-section" class="flashcard-section">
-            <div class="navigation">
-                <button id="back-button">Back to Topics</button>
-                <h2 id="current-topic">Topic</h2>
-            </div>
-            
-            <div class="navigation">
-                <p id="problem-counter" class="problem-counter">Card 1 of 5</p>
-                <div>
-                    <button id="prev-button" disabled>Previous</button>
-                    <button id="next-button">Next</button>
-                </div>
-            </div>
-            
-            <div class="flip-card-container">
-                <div id="flashcard" class="flip-card">
-                    <!-- Front -->
-                    <div class="flip-card-front">
-                        <div class="card-header front-header">
-                            <h3 id="card-title">Problem Title</h3>
-                            <span id="card-difficulty" class="difficulty">Medium</span>
-                        </div>
-                        
-                        <div class="tabs front-tabs">
-                            <div id="question-tab" class="tab active">Question</div>
-                            <div id="hint-tab" class="tab">Hint</div>
-                        </div>
-                        
-                        <div class="tab-content">
-                            <div id="question-content" class="tab-pane active">Question content goes here</div>
-                            <div id="hint-content" class="tab-pane">Hint content goes here</div>
-                        </div>
-                        
-                        <div class="flip-hint">Click to flip</div>
-                    </div>
-                    
-                    <!-- Back -->
-                    <div class="flip-card-back">
-                        <div class="card-header back-header">
-                            <h3 id="card-title-back">Problem Solution</h3>
-                        </div>
-                        
-                        <div class="tabs back-tabs">
-                            <div id="one-liner-tab" class="tab active">Strategy</div>
-                            <div id="three-liner-tab" class="tab">Simple Explanation</div>
-                            <div id="mnemonic-tab" class="tab">Mnemonics</div>
-                            <div id="code-tab" class="tab">Code</div>
-                        </div>
-                        
-                        <div class="tab-content">
-                            <div id="one-liner-content" class="tab-pane active">One liner content</div>
-                            <div id="three-liner-content" class="tab-pane">Three liner content</div>
-                            <div id="mnemonic-content" class="tab-pane">Mnemonic content</div>
-                            <div id="code-content" class="tab-pane">
-                                <pre id="code-block">Code goes here</pre>
-                            </div>
-                        </div>
-                        
-                        <div class="flip-hint">Click to flip back</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <footer>
-        <p>&copy; 2025 LeetCode Flashcards - Master Algorithms & Data Structures</p>
-    </footer>
-
-    <script>
-        // Topics data
-        const topics = [
-            { id: 'arrays', name: 'Arrays and Hashing' },
-            { id: 'twopointers', name: 'Two Pointers' },
-            { id: 'stack', name: 'Stack' },
-            { id: 'binarysearch', name: 'Binary Search' },
-            { id: 'slidingwindow', name: 'Sliding Window' },
-            { id: 'linkedlist', name: 'Linked List' },
-            { id: 'trees', name: 'Trees' },
-            { id: 'tries', name: 'Tries' },
-            { id: 'backtracking', name: 'Backtracking' },
-            { id: 'heap', name: 'Heap/Priority Queue' },
-            { id: 'intervals', name: 'Intervals' },
-            { id: 'greedy', name: 'Greedy' },
-            { id: 'advancedgraphs', name: 'Advanced Graphs' },
-            { id: 'graphs', name: 'Graphs' },
-            { id: 'dp1d', name: '1-D Dynamic Programming' },
-            { id: 'dp2d', name: '2-D Dynamic Programming' },
-            { id: 'bitmanipulation', name: 'Bit Manipulation' },
-            { id: 'mathgeometry', name: 'Math & Geometry' }
-        ];
-
-        // Problem data (sample)
-        const problems = {
-            arrays: [
-                {
-                    title: 'Contains Duplicate',
-                    difficulty: 'Easy',
-                    question: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
-                    hint: 'Think about using a data structure that allows for O(1) lookups.',
-                    oneLiner: 'Use a HashSet to track seen numbers.',
-                    threeLiner: 'We pick each number one by one.\nWe check if we\'ve seen it before in our set.\nIf yes, return true; otherwise, add it to our set and continue.',
-                    mnemonic: '🔍 "HashSet, Fast Check—Seen Before? Then Duplicate!"\n\n- "Start root" → seen = set()\n- "Check if seen" → if num in seen: return True\n- "Add to seen" → seen.add(num)',
-                    code: `def containsDuplicate(nums):
-    seen = set()
-    for num in nums:
-        if num in seen:
-            return True
-        seen.add(num)
-    return False
-
-# Time Complexity: O(n)
-# Space Complexity: O(n)`
-                },
-                {
-                    title: 'Valid Anagram',
-                    difficulty: 'Easy',
-                    question: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of another word.',
-                    hint: 'Count the occurrences of each character in both strings.',
-                    oneLiner: 'Count and compare character frequencies.',
-                    threeLiner: 'We count how many times each letter appears in the first string.\nWe do the same for the second string.\nWe check if both counts match exactly.',
-                    mnemonic: '⚖️ "Character Count Balance—Each Letter Must Match!"\n\n- "Length check" → if len(s) != len(t): return False\n- "Count characters" → char_count[s[i]] += 1, char_count[t[i]] -= 1\n- "Check balance" → for val in count: if val != 0: return False',
-                    code: `def isAnagram(s, t):
-    if len(s) != len(t):
-        return False
-        
-    char_count = {}
-    
-    # Count characters in s
-    for char in s:
-        char_count[char] = char_count.get(char, 0) + 1
-        
-    # Decrement counts for t
-    for char in t:
-        if char not in char_count or char_count[char] == 0:
-            return False
-        char_count[char] -= 1
-        
-    return True
-
-# Time Complexity: O(n)
-# Space Complexity: O(1) - as there are only 26 possible lowercase letters`
-                }
-            ],
-            twopointers: [
-                {
-                    title: 'Valid Palindrome',
-                    difficulty: 'Easy',
-                    question: 'A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.',
-                    hint: 'Use two pointers: one starting from the beginning and one from the end.',
-                    oneLiner: 'Use two pointers moving inward, skipping non-alphanumeric characters.',
-                    threeLiner: 'We start with two pointers—one at the beginning, one at the end.\nWe skip any non-alphanumeric characters.\nWe compare characters and move pointers inward until they meet.',
-                    mnemonic: '🔄 "Two Pointers, Mirror Check—Left and Right Reflect to Confirm Palindrome!"\n\n- "Skip non-alphanumeric" → while left < right and not s[left].isalnum(): left += 1\n- "Compare characters" → if s[left].lower() != s[right].lower(): return False\n- "Move pointers" → left += 1, right -= 1',
-                    code: `def isPalindrome(s):
-    left, right = 0, len(s) - 1
-    
-    while left < right:
-        # Skip non-alphanumeric characters
-        while left < right and not s[left].isalnum():
-            left += 1
-        while left < right and not s[right].isalnum():
-            right -= 1
-            
-        # Compare characters (case-insensitive)
-        if s[left].lower() != s[right].lower():
-            return False
-            
-        left += 1
-        right -= 1
-        
-    return True
-
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-                }
-            ]
-        };
-
-        // DOM elements
-        const topicSection = document.getElementById('topic-section');
-        const topicGrid = document.getElementById('topic-grid');
-        const flashcardSection = document.getElementById('flashcard-section');
-        const backButton = document.getElementById('back-button');
-        const currentTopic = document.getElementById('current-topic');
-        const problemCounter = document.getElementById('problem-counter');
-        const prevButton = document.getElementById('prev-button');
-        const nextButton = document.getElementById('next-button');
-        const flashcard = document.getElementById('flashcard');
-        
-        // Front tabs
-        const questionTab = document.getElementById('question-tab');
-        const hintTab = document.getElementById('hint-tab');
-        const questionContent = document.getElementById('question-content');
-        const hintContent = document.getElementById('hint-content');
-        
-        // Back tabs
-        const oneLinerTab = document.getElementById('one-liner-tab');
-        const threeLinerTab = document.getElementById('three-liner-tab');
-        const mnemonicTab = document.getElementById('mnemonic-tab');
-        const codeTab = document.getElementById('code-tab');
-        const oneLinerContent = document.getElementById('one-liner-content');
-        const threeLinerContent = document.getElementById('three-liner-content');
-        const mnemonicContent = document.getElementById('mnemonic-content');
-        const codeContent = document.getElementById('code-content');
-        
-        // State variables
-        let selectedTopicId = null;
-        let currentProblemIndex = 0;
+let currentProblemIndex = 0;
 
         // Populate topics
         function populateTopics() {
@@ -544,10 +81,9 @@
             
             // Update content
             questionContent.textContent = problem.question;
-            hintContent.textContent = problem.hint;
-            oneLinerContent.textContent = problem.oneLiner || "No strategy available";
-            threeLinerContent.textContent = problem.threeLiner || "No simple explanation available";
+            hintContent.textContent = problem.hint || "No hint available";
             mnemonicContent.innerHTML = problem.mnemonic || "No mnemonic available";
+            threeLinerContent.textContent = problem.threeLiner || "No simple explanation available";
             document.getElementById('code-block').textContent = problem.code || "No code available";
             
             // Reset tabs
@@ -563,13 +99,11 @@
             hintContent.classList.remove('active');
             
             // Back tabs
-            oneLinerTab.classList.add('active');
+            mnemonicTab.classList.add('active');
             threeLinerTab.classList.remove('active');
-            mnemonicTab.classList.remove('active');
             codeTab.classList.remove('active');
-            oneLinerContent.classList.add('active');
+            mnemonicContent.classList.add('active');
             threeLinerContent.classList.remove('active');
-            mnemonicContent.classList.remove('active');
             codeContent.classList.remove('active');
         }
 
@@ -616,52 +150,34 @@
         });
         
         // Back tab switching
-        oneLinerTab.addEventListener('click', (e) => {
+        mnemonicTab.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card flip
-            oneLinerTab.classList.add('active');
+            mnemonicTab.classList.add('active');
             threeLinerTab.classList.remove('active');
-            mnemonicTab.classList.remove('active');
             codeTab.classList.remove('active');
-            oneLinerContent.classList.add('active');
+            mnemonicContent.classList.add('active');
             threeLinerContent.classList.remove('active');
-            mnemonicContent.classList.remove('active');
             codeContent.classList.remove('active');
         });
         
         threeLinerTab.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card flip
             threeLinerTab.classList.add('active');
-            oneLinerTab.classList.remove('active');
             mnemonicTab.classList.remove('active');
             codeTab.classList.remove('active');
             threeLinerContent.classList.add('active');
-            oneLinerContent.classList.remove('active');
             mnemonicContent.classList.remove('active');
-            codeContent.classList.remove('active');
-        });
-        
-        mnemonicTab.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent card flip
-            mnemonicTab.classList.add('active');
-            oneLinerTab.classList.remove('active');
-            threeLinerTab.classList.remove('active');
-            codeTab.classList.remove('active');
-            mnemonicContent.classList.add('active');
-            oneLinerContent.classList.remove('active');
-            threeLinerContent.classList.remove('active');
             codeContent.classList.remove('active');
         });
         
         codeTab.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card flip
             codeTab.classList.add('active');
-            oneLinerTab.classList.remove('active');
-            threeLinerTab.classList.remove('active');
             mnemonicTab.classList.remove('active');
+            threeLinerTab.classList.remove('active');
             codeContent.classList.add('active');
-            oneLinerContent.classList.remove('active');
-            threeLinerContent.classList.remove('active');
             mnemonicContent.classList.remove('active');
+            threeLinerContent.classList.remove('active');
         });
         
         // Initialize app
