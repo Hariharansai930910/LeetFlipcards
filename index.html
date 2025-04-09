@@ -1,204 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeetCode Flashcards</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    .flip-card-container {
-      perspective: 1000px;
-    }
-    .flip-card {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-    }
-    .flip-card.flipped {
-      transform: rotateY(180deg);
-    }
-    .flip-card-front, .flip-card-back {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      overflow: hidden;
-    }
-    .flip-card-front {
-      background-color: white;
-      z-index: 2;
-    }
-    .flip-card-back {
-      background-color: #2d3748;
-      color: white;
-      transform: rotateY(180deg);
-    }
-    .tab-content {
-      height: calc(100% - 120px);
-      overflow-y: auto;
-    }
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-    .flip-card-container {
-      perspective: 1000px;
-      width: 100%;
-      max-width: 600px;
-      height: 600px;
-      margin: 0 auto;
-    }
-    .flip-card-front, .flip-card-back {
-      border: 1px solid #ccc;
-      min-height: 500px; /* Ensure minimum height */
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Flashcards</title>
+    <style>
+        /* Basic styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: #1e293b;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        h2 {
+            margin-bottom: 1rem;
+        }
+        
+        /* Topic grid */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .topic-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        
+        .topic-card:hover {
+            background-color: #f8fafc;
+            transform: translateY(-2px);
+        }
+        
+        .topic-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .topic-card h3 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .topic-card p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        /* Flashcard section */
+        .flashcard-section {
+            display: none;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .navigation button {
+            background-color: #334155;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        
+        .navigation button:hover {
+            background-color: #475569;
+        }
+        
+        .navigation button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .problem-counter {
+            color: #6b7280;
+        }
+        
+        /* Card */
+        .flip-card-container {
+            perspective: 1000px;
+            width: 100%;
+            max-width: 600px;
+            height: 600px;
+            margin: 0 auto;
+        }
+        
+        .flip-card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        
+        .flip-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            overflow: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .flip-card-front {
+            background-color: white;
+        }
+        
+        .flip-card-back {
+            background-color: #1e293b;
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .card-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .front-header {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .back-header {
+            background-color: #1e293b;
+        }
+        
+        .difficulty {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .easy { background-color: #22c55e; }
+        .medium { background-color: #f59e0b; }
+        .hard { background-color: #ef4444; }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .front-tabs .tab.active {
+            border-bottom-color: #2563eb;
+            color: #2563eb;
+        }
+        
+        .back-tabs .tab.active {
+            border-bottom-color: #60a5fa;
+            color: #60a5fa;
+        }
+        
+        .tab-content {
+            padding: 1rem;
+            height: calc(100% - 130px);
+            overflow: auto;
+        }
+        
+        .tab-pane {
+            display: none;
+        }
+        
+        .tab-pane.active {
+            display: block;
+        }
+        
+        pre {
+            background-color: #0f172a;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        
+        .flip-hint {
+            position: absolute;
+            bottom: 1rem;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+        
+        footer {
+            background-color: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
-  <!-- Header -->
-  <header class="bg-gray-800 text-white shadow-md">
-    <div class="container mx-auto py-4 px-6">
-      <h1 class="text-2xl font-bold">LeetCode Flashcards</h1>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="flex-grow container mx-auto p-6">
-    <!-- Topic Selection -->
-    <div id="topic-section">
-      <h2 class="text-xl font-semibold mb-6">Select a Topic</h2>
-      <div id="topic-grid" class="grid-container">
-        <!-- Topics will be populated by JavaScript -->
-      </div>
-    </div>
-
-    <!-- Flashcard Section (initially hidden) -->
-    <div id="flashcard-section" class="hidden">
-      <!-- Navigation -->
-      <div class="mb-6">
-        <button id="back-button" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">
-          Back to Topics
-        </button>
-        <h2 id="current-topic" class="text-xl font-semibold mt-4"></h2>
-        <div class="flex justify-between items-center mt-2">
-          <p id="problem-counter" class="text-gray-600"></p>
-          <div class="flex gap-2">
-            <button id="prev-button" class="bg-gray-200 px-3 py-1 rounded disabled:opacity-50">Previous</button>
-            <button id="next-button" class="bg-gray-200 px-3 py-1 rounded disabled:opacity-50">Next</button>
-          </div>
+<body>
+    <header>
+        <h1>LeetCode Flashcards</h1>
+    </header>
+    
+    <div class="container">
+        <!-- Topic Selection -->
+        <div id="topic-section">
+            <h2>Select a Topic</h2>
+            <div id="topic-grid" class="topic-grid">
+                <!-- Topics will be populated by JavaScript -->
+            </div>
         </div>
-      </div>
-
-      <!-- Card -->
-      <div class="flip-card-container w-full max-w-3xl aspect-square mx-auto">
-        <div id="flashcard" class="flip-card">
-          <!-- Front -->
-          <div class="flip-card-front rounded-xl shadow-lg">
-            <div class="p-5 bg-blue-600 text-white flex justify-between items-center">
-              <h3 id="card-title" class="font-bold text-xl"></h3>
-              <span id="card-difficulty" class="px-2 py-1 rounded-full text-xs font-semibold"></span>
+        
+        <!-- Flashcard Section (initially hidden) -->
+        <div id="flashcard-section" class="flashcard-section">
+            <div class="navigation">
+                <button id="back-button">Back to Topics</button>
+                <h2 id="current-topic">Topic</h2>
             </div>
             
-            <!-- Front Tabs -->
-            <div class="border-b">
-              <div class="flex">
-                <button id="question-tab" class="px-4 py-2 border-b-2 border-blue-500 text-blue-600">Question</button>
-                <button id="hint-tab" class="px-4 py-2 border-b-2 border-transparent">Hint</button>
-              </div>
+            <div class="navigation">
+                <p id="problem-counter" class="problem-counter">Card 1 of 5</p>
+                <div>
+                    <button id="prev-button" disabled>Previous</button>
+                    <button id="next-button">Next</button>
+                </div>
             </div>
             
-            <!-- Front Content -->
-            <div class="tab-content p-5">
-              <div id="question-content" class="text-gray-700"></div>
-              <div id="hint-content" class="text-gray-700 hidden"></div>
+            <div class="flip-card-container">
+                <div id="flashcard" class="flip-card">
+                    <!-- Front -->
+                    <div class="flip-card-front">
+                        <div class="card-header front-header">
+                            <h3 id="card-title">Problem Title</h3>
+                            <span id="card-difficulty" class="difficulty">Medium</span>
+                        </div>
+                        
+                        <div class="tabs front-tabs">
+                            <div id="question-tab" class="tab active">Question</div>
+                            <div id="hint-tab" class="tab">Hint</div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div id="question-content" class="tab-pane active">Question content goes here</div>
+                            <div id="hint-content" class="tab-pane">Hint content goes here</div>
+                        </div>
+                        
+                        <div class="flip-hint">Click to flip</div>
+                    </div>
+                    
+                    <!-- Back -->
+                    <div class="flip-card-back">
+                        <div class="card-header back-header">
+                            <h3 id="card-title-back">Problem Solution</h3>
+                        </div>
+                        
+                        <div class="tabs back-tabs">
+                            <div id="one-liner-tab" class="tab active">Strategy</div>
+                            <div id="three-liner-tab" class="tab">Simple Explanation</div>
+                            <div id="mnemonic-tab" class="tab">Mnemonics</div>
+                            <div id="code-tab" class="tab">Code</div>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div id="one-liner-content" class="tab-pane active">One liner content</div>
+                            <div id="three-liner-content" class="tab-pane">Three liner content</div>
+                            <div id="mnemonic-content" class="tab-pane">Mnemonic content</div>
+                            <div id="code-content" class="tab-pane">
+                                <pre id="code-block">Code goes here</pre>
+                            </div>
+                        </div>
+                        
+                        <div class="flip-hint">Click to flip back</div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="absolute bottom-4 left-0 right-0 text-center text-gray-500 text-sm">
-              Click to flip
-            </div>
-          </div>
-          
-          <!-- Back -->
-          <div class="flip-card-back rounded-xl shadow-lg">
-            <div class="p-5 bg-gray-800 text-white flex justify-between items-center">
-              <h3 id="card-title-back" class="font-bold text-xl"></h3>
-            </div>
-            
-            <!-- Back Tabs -->
-            <div class="border-b border-gray-600">
-              <div class="flex flex-wrap">
-                <button id="one-liner-tab" class="px-3 py-2 border-b-2 border-blue-300 text-blue-300 text-sm">Strategy</button>
-                <button id="three-liner-tab" class="px-3 py-2 border-b-2 border-transparent text-gray-300 text-sm">Simple Explanation</button>
-                <button id="mnemonic-tab" class="px-3 py-2 border-b-2 border-transparent text-gray-300 text-sm">Mnemonics</button>
-                <button id="code-tab" class="px-3 py-2 border-b-2 border-transparent text-gray-300 text-sm">Code</button>
-              </div>
-            </div>
-            
-            <!-- Back Content -->
-            <div class="tab-content p-5">
-              <div id="one-liner-content" class="text-white"></div>
-              <div id="three-liner-content" class="text-white hidden"></div>
-              <div id="mnemonic-content" class="text-white hidden whitespace-pre-line"></div>
-              <div id="code-content" class="hidden">
-                <pre id="code-block" class="font-mono text-sm bg-gray-900 p-4 rounded text-white overflow-auto"></pre>
-              </div>
-            </div>
-            
-            <div class="absolute bottom-4 left-0 right-0 text-center text-gray-400 text-sm">
-              Click to flip back
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </main>
+    
+    <footer>
+        <p>&copy; 2025 LeetCode Flashcards - Master Algorithms & Data Structures</p>
+    </footer>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-white p-4 mt-8">
-    <div class="container mx-auto text-center text-sm">
-      <p>© 2025 LeetCode Flashcards - Master Algorithms & Data Structures</p>
-    </div>
-  </footer>
+    <script>
+        // Topics data
+        const topics = [
+            { id: 'arrays', name: 'Arrays and Hashing' },
+            { id: 'twopointers', name: 'Two Pointers' },
+            { id: 'stack', name: 'Stack' },
+            { id: 'binarysearch', name: 'Binary Search' },
+            { id: 'slidingwindow', name: 'Sliding Window' },
+            { id: 'linkedlist', name: 'Linked List' },
+            { id: 'trees', name: 'Trees' },
+            { id: 'tries', name: 'Tries' },
+            { id: 'backtracking', name: 'Backtracking' },
+            { id: 'heap', name: 'Heap/Priority Queue' },
+            { id: 'intervals', name: 'Intervals' },
+            { id: 'greedy', name: 'Greedy' },
+            { id: 'advancedgraphs', name: 'Advanced Graphs' },
+            { id: 'graphs', name: 'Graphs' },
+            { id: 'dp1d', name: '1-D Dynamic Programming' },
+            { id: 'dp2d', name: '2-D Dynamic Programming' },
+            { id: 'bitmanipulation', name: 'Bit Manipulation' },
+            { id: 'mathgeometry', name: 'Math & Geometry' }
+        ];
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Topics data
-      const topics = [
-        { id: 'arrays', name: 'Arrays and Hashing' },
-        { id: 'twopointers', name: 'Two Pointers' },
-        { id: 'stack', name: 'Stack' },
-        { id: 'binarysearch', name: 'Binary Search' },
-        { id: 'slidingwindow', name: 'Sliding Window' },
-        { id: 'linkedlist', name: 'Linked List' },
-        { id: 'trees', name: 'Trees' },
-        { id: 'tries', name: 'Tries' },
-        { id: 'backtracking', name: 'Backtracking' },
-        { id: 'heap', name: 'Heap/Priority Queue' },
-        { id: 'intervals', name: 'Intervals' },
-        { id: 'greedy', name: 'Greedy' },
-        { id: 'advancedgraphs', name: 'Advanced Graphs' },
-        { id: 'graphs', name: 'Graphs' },
-        { id: 'dp1d', name: '1-D Dynamic Programming' },
-        { id: 'dp2d', name: '2-D Dynamic Programming' },
-        { id: 'bitmanipulation', name: 'Bit Manipulation' },
-        { id: 'mathgeometry', name: 'Math & Geometry' },
-      ];
-
-// Problems data
-const problems = {
-  arrays: [
-    {
-      title: 'Contains Duplicate',
-      difficulty: 'Easy',
-      question: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
-      hint: 'Think about using a data structure that allows for O(1) lookups.',
-      oneLiner: 'Use a HashSet to track seen numbers.',
-      threeLiner: 'We pick each number one by one.\nWe check if we\'ve seen it before in our set.\nIf yes, return true; otherwise, add it to our set and continue.',
-      mnemonic: '🔍 **"HashSet, Fast Check—Seen Before? Then Duplicate!"**\n\n- "Start root" → `seen = set()`\n- "Check if seen" → `if num in seen: return True`\n- "Add to seen" → `seen.add(num)`',
-      code: `def containsDuplicate(nums):
+        // Problem data (sample)
+        const problems = {
+            arrays: [
+                {
+                    title: 'Contains Duplicate',
+                    difficulty: 'Easy',
+                    question: 'Given an integer array nums, return true if any value appears more than once in the array, otherwise return false.',
+                    hint: 'Think about using a data structure that allows for O(1) lookups.',
+                    oneLiner: 'Use a HashSet to track seen numbers.',
+                    threeLiner: 'We pick each number one by one.\nWe check if we\'ve seen it before in our set.\nIf yes, return true; otherwise, add it to our set and continue.',
+                    mnemonic: '🔍 "HashSet, Fast Check—Seen Before? Then Duplicate!"\n\n- "Start root" → seen = set()\n- "Check if seen" → if num in seen: return True\n- "Add to seen" → seen.add(num)',
+                    code: `def containsDuplicate(nums):
     seen = set()
     for num in nums:
         if num in seen:
@@ -208,16 +367,16 @@ const problems = {
 
 # Time Complexity: O(n)
 # Space Complexity: O(n)`
-    },
-    {
-      title: 'Valid Anagram',
-      difficulty: 'Easy',
-      question: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of another word.',
-      hint: 'Count the occurrences of each character in both strings.',
-      oneLiner: 'Count and compare character frequencies.',
-      threeLiner: 'We count how many times each letter appears in the first string.\nWe do the same for the second string.\nWe check if both counts match exactly.',
-      mnemonic: '⚖️ **"Character Count Balance—Each Letter Must Match!"**\n\n- "Length check" → `if len(s) != len(t): return False`\n- "Count characters" → `char_count[s[i]] += 1, char_count[t[i]] -= 1`\n- "Check balance" → `for val in count: if val != 0: return False`',
-      code: `def isAnagram(s, t):
+                },
+                {
+                    title: 'Valid Anagram',
+                    difficulty: 'Easy',
+                    question: 'Given two strings s and t, return true if t is an anagram of s, and false otherwise. An anagram is a word formed by rearranging the letters of another word.',
+                    hint: 'Count the occurrences of each character in both strings.',
+                    oneLiner: 'Count and compare character frequencies.',
+                    threeLiner: 'We count how many times each letter appears in the first string.\nWe do the same for the second string.\nWe check if both counts match exactly.',
+                    mnemonic: '⚖️ "Character Count Balance—Each Letter Must Match!"\n\n- "Length check" → if len(s) != len(t): return False\n- "Count characters" → char_count[s[i]] += 1, char_count[t[i]] -= 1\n- "Check balance" → for val in count: if val != 0: return False',
+                    code: `def isAnagram(s, t):
     if len(s) != len(t):
         return False
         
@@ -237,18 +396,18 @@ const problems = {
 
 # Time Complexity: O(n)
 # Space Complexity: O(1) - as there are only 26 possible lowercase letters`
-    }
-  ],
-twopointers: [
-  {
-    title: 'Valid Palindrome',
-    difficulty: 'Easy',
-    question: 'A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.',
-    hint: 'Use two pointers: one starting from the beginning and one from the end.',
-    oneLiner: 'Use two pointers moving inward, skipping non-alphanumeric characters.',
-    threeLiner: 'We start with two pointers—one at the beginning, one at the end.\nWe skip any non-alphanumeric characters.\nWe compare characters and move pointers inward until they meet.',
-    mnemonic: '🔄 **"Two Pointers, Mirror Check—Left and Right Reflect to Confirm Palindrome!"**\n\nPicture a **magic mirror**:\n- "Skip non-alphanumeric" → `while left < right and not s[left].isalnum(): left += 1`\n- "Compare characters" → `if s[left].lower() != s[right].lower(): return False`\n- "Move pointers" → `left += 1, right -= 1`',
-    code: `def isPalindrome(s):
+                }
+            ],
+            twopointers: [
+                {
+                    title: 'Valid Palindrome',
+                    difficulty: 'Easy',
+                    question: 'A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward.',
+                    hint: 'Use two pointers: one starting from the beginning and one from the end.',
+                    oneLiner: 'Use two pointers moving inward, skipping non-alphanumeric characters.',
+                    threeLiner: 'We start with two pointers—one at the beginning, one at the end.\nWe skip any non-alphanumeric characters.\nWe compare characters and move pointers inward until they meet.',
+                    mnemonic: '🔄 "Two Pointers, Mirror Check—Left and Right Reflect to Confirm Palindrome!"\n\n- "Skip non-alphanumeric" → while left < right and not s[left].isalnum(): left += 1\n- "Compare characters" → if s[left].lower() != s[right].lower(): return False\n- "Move pointers" → left += 1, right -= 1',
+                    code: `def isPalindrome(s):
     left, right = 0, len(s) - 1
     
     while left < right:
@@ -269,466 +428,253 @@ twopointers: [
 
 # Time Complexity: O(n)
 # Space Complexity: O(1)`
-  },
-  {
-    title: 'Two Sum II - Input Array Is Sorted',
-    difficulty: 'Medium',
-    question: 'Given a 1-indexed array of integers numbers that is already sorted in non-decreasing order, find two numbers such that they add up to a specific target number.',
-    hint: 'Since the array is sorted, you can use two pointers from both ends.',
-    oneLiner: 'Use two pointers moving inward based on sum comparison.',
-    threeLiner: 'We place pointers at the beginning and end of the array.\nWe adjust pointers based on the sum: move left if too small, right if too large.\nWe continue until we find the exact pair that sums to the target.',
-    mnemonic: '🎯 **"Two Pointers, One Target—Left and Right Move to Hit the Sum!"**\n\nImagine a **seesaw**:\n- "Calculate sum" → `current_sum = numbers[left] + numbers[right]`\n- "Move left if small" → `if current_sum < target: left += 1`\n- "Move right if large" → `else: right -= 1`',
-    code: `def twoSum(numbers, target):
-    left, right = 0, len(numbers) - 1
-    
-    while left < right:
-        current_sum = numbers[left] + numbers[right]
-        
-        if current_sum == target:
-            return [left + 1, right + 1]  # 1-indexed
-        
-        if current_sum < target:
-            left += 1
-        else:
-            right -= 1
-    
-    return []  # No solution found
+                }
+            ]
+        };
 
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-  },
-  {
-    title: '3Sum',
-    difficulty: 'Medium',
-    question: 'Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]] such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.',
-    hint: 'Sort the array first, then use a combination of iteration and two pointers.',
-    oneLiner: 'Fix one number, then use two pointers for the other two.',
-    threeLiner: 'We sort the array and iterate through each number as a potential first element.\nFor each number, we use two pointers to find pairs that sum to its negative.\nWe skip duplicates at each level to avoid duplicate triplets.',
-    mnemonic: '🚀 **"Two Pointers, One Goal—Find Triplets That Sum to Zero!"**\n\nImagine a **treasure hunt**:\n- "Sort first" → `nums.sort()`\n- "Avoid duplicates" → `if i > 0 and nums[i] == nums[i-1]: continue`\n- "Adjust pointers" → `if total < 0: left += 1 elif total > 0: right -= 1`',
-    code: `def threeSum(nums):
-    nums.sort()
-    result = []
-    
-    for i in range(len(nums) - 2):
-        # Skip duplicates
-        if i > 0 and nums[i] == nums[i-1]:
-            continue
-            
-        left, right = i + 1, len(nums) - 1
+        // DOM elements
+        const topicSection = document.getElementById('topic-section');
+        const topicGrid = document.getElementById('topic-grid');
+        const flashcardSection = document.getElementById('flashcard-section');
+        const backButton = document.getElementById('back-button');
+        const currentTopic = document.getElementById('current-topic');
+        const problemCounter = document.getElementById('problem-counter');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const flashcard = document.getElementById('flashcard');
         
-        while left < right:
-            total = nums[i] + nums[left] + nums[right]
+        // Front tabs
+        const questionTab = document.getElementById('question-tab');
+        const hintTab = document.getElementById('hint-tab');
+        const questionContent = document.getElementById('question-content');
+        const hintContent = document.getElementById('hint-content');
+        
+        // Back tabs
+        const oneLinerTab = document.getElementById('one-liner-tab');
+        const threeLinerTab = document.getElementById('three-liner-tab');
+        const mnemonicTab = document.getElementById('mnemonic-tab');
+        const codeTab = document.getElementById('code-tab');
+        const oneLinerContent = document.getElementById('one-liner-content');
+        const threeLinerContent = document.getElementById('three-liner-content');
+        const mnemonicContent = document.getElementById('mnemonic-content');
+        const codeContent = document.getElementById('code-content');
+        
+        // State variables
+        let selectedTopicId = null;
+        let currentProblemIndex = 0;
+
+        // Populate topics
+        function populateTopics() {
+            console.log("Populating topics...");
+            topicGrid.innerHTML = '';
             
-            if total < 0:
-                left += 1
-            elif total > 0:
-                right -= 1
-            else:
-                # Found a triplet
-                result.append([nums[i], nums[left], nums[right]])
+            topics.forEach(topic => {
+                const problemCount = problems[topic.id] ? problems[topic.id].length : 0;
+                const topicCard = document.createElement('div');
+                topicCard.className = 'topic-card';
                 
-                # Skip duplicates
-                while left < right and nums[left] == nums[left + 1]:
-                    left += 1
-                while left < right and nums[right] == nums[right - 1]:
-                    right -= 1
-                    
-                left += 1
-                right -= 1
+                if (problemCount === 0) {
+                    topicCard.className += ' disabled';
+                    topicCard.style.cursor = 'not-allowed';
+                } else {
+                    topicCard.style.cursor = 'pointer';
+                    topicCard.addEventListener('click', () => selectTopic(topic.id));
+                }
                 
-    return result
-
-# Time Complexity: O(n²)
-# Space Complexity: O(1) - excluding output space`
-  },
-  {
-    title: 'Container With Most Water',
-    difficulty: 'Medium',
-    question: 'Given n non-negative integers a1, a2, ..., an , where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of the line i is at (i, ai) and (i, 0). Find two lines, which, together with the x-axis, forms a container, such that the container contains the most water.',
-    hint: 'Start with the widest container and move inward, always moving the shorter line.',
-    oneLiner: 'Use two pointers and always move the shorter height inward.',
-    threeLiner: 'We start with pointers at both ends to get the widest container.\nWe calculate area as width × minimum height.\nWe move the pointer with the shorter height inward, as this gives us a chance to find a larger area.',
-    mnemonic: '🌊 **"Two Pointers, One Container—Left and Right Move to Maximize Water!"**\n\nPicture **two friends** holding tall glasses of water:\n- "Calculate area" → `area = min(height[left], height[right]) * (right - left)`\n- "Track maximum" → `max_water = max(max_water, area)`\n- "Move shorter line" → `if height[left] < height[right]: left += 1 else: right -= 1`',
-    code: `def maxArea(height):
-    left, right = 0, len(height) - 1
-    max_water = 0
-    
-    while left < right:
-        # Calculate current area
-        current_area = min(height[left], height[right]) * (right - left)
-        max_water = max(max_water, current_area)
-        
-        # Move the pointer with the smaller height
-        if height[left] < height[right]:
-            left += 1
-        else:
-            right -= 1
-            
-    return max_water
-
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-  },
-  {
-    title: 'Trapping Rain Water',
-    difficulty: 'Hard',
-    question: 'Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.',
-    hint: 'For each position, water trapped = min(max_left, max_right) - height[i]. Use two pointers to track left_max and right_max efficiently.',
-    oneLiner: 'Use two pointers to track max heights from both sides.',
-    threeLiner: 'We use two pointers and track the maximum height seen from both sides.\nAt each position, water trapped equals the smaller of the two max heights minus the current height.\nWe always move the pointer with the smaller max height.',
-    mnemonic: '💧 **"Two walls, one water: Left and Right take turns, filling gaps where they find!"**\n\nImagine two friends holding buckets:\n- "Track max heights" → `left_max = max(left_max, height[left])`\n- "Calculate water" → `result += left_max - height[left]`\n- "Move smaller side" → `if left_max < right_max: left += 1 else: right -= 1`',
-    code: `def trap(height):
-    if not height:
-        return 0
-        
-    left, right = 0, len(height) - 1
-    left_max = height[left]
-    right_max = height[right]
-    result = 0
-    
-    while left < right:
-        if left_max < right_max:
-            left += 1
-            left_max = max(left_max, height[left])
-            result += left_max - height[left]
-        else:
-            right -= 1
-            right_max = max(right_max, height[right])
-            result += right_max - height[right]
-            
-    return result
-
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-  }
-],
-  stack: [
-    {
-      title: 'Valid Parentheses',
-      difficulty: 'Easy',
-      question: 'Given a string s containing just the characters \'(\', \')\', \'{\', \'}\', \'[\' and \']\', determine if the input string is valid.',
-      hint: 'Use a stack to keep track of opening brackets.',
-      oneLiner: 'Use a stack to match opening and closing brackets.',
-      threeLiner: 'We push opening brackets onto a stack.\nWhen we see a closing bracket, we check if it matches the top opening bracket.\nIf all brackets match and the stack is empty at the end, the string is valid.',
-      mnemonic: '🔄 **"Stack for Brackets—Push Open, Pop Closed!"**\n\n- "Map brackets" → `mapping = {")": "(", "}": "{", "]": "["}`\n- "Push opening" → `stack.append(char)`\n- "Check match" → `if mapping[char] != stack.pop(): return False`',
-      code: `def isValid(s):
-    stack = []
-    mapping = {")": "(", "}": "{", "]": "["}
-    
-    for char in s:
-        if char in mapping:  # closing bracket
-            top_element = stack.pop() if stack else '#'
-            if mapping[char] != top_element:
-                return False
-        else:  # opening bracket
-            stack.append(char)
-    
-    return not stack  # stack should be empty at the end
-
-# Time Complexity: O(n)
-# Space Complexity: O(n)`
-    }
-  ],
-  binarysearch: [
-    {
-      title: 'Binary Search',
-      difficulty: 'Easy',
-      question: 'Given an array of integers nums which is sorted in ascending order, and an integer target, write a function to search target in nums.',
-      hint: 'Use the binary search algorithm by repeatedly dividing the search interval in half.',
-      oneLiner: 'Use binary search to halve the search space each iteration.',
-      threeLiner: 'We maintain left and right pointers defining our search range.\nWe check the middle element and compare it to our target.\nBased on the comparison, we eliminate half the search space each time.',
-      mnemonic: '📚 **"Divide and Conquer—Half the Search Space Each Time!"**\n\n- "Find middle" → `mid = (left + right) // 2`\n- "Check target" → `if nums[mid] == target: return mid`\n- "Narrow search" → `if nums[mid] < target: left = mid + 1 else: right = mid - 1`',
-      code: `def search(nums, target):
-    left, right = 0, len(nums) - 1
-    
-    while left <= right:
-        mid = (left + right) // 2
-        
-        if nums[mid] == target:
-            return mid
-        
-        if nums[mid] < target:
-            left = mid + 1
-        else:
-            right = mid - 1
-    
-    return -1  # Target not found
-
-# Time Complexity: O(log n)
-# Space Complexity: O(1)`
-    }
-  ],
-  slidingwindow: [
-    {
-      title: 'Best Time to Buy and Sell Stock',
-      difficulty: 'Easy',
-      question: 'You are given an array prices where prices[i] is the price of a given stock on the ith day. You want to maximize your profit by choosing a single day to buy and a single day to sell.',
-      hint: 'Keep track of the minimum price you\'ve seen so far, and calculate the maximum profit as you go through the array.',
-      oneLiner: 'Track minimum price seen so far and maximize profit.',
-      threeLiner: 'We track the minimum price seen so far.\nAt each step, we calculate the potential profit if we sell today.\nWe keep track of the maximum profit we can achieve.',
-      mnemonic: '📈 **"Buy Low, Sell High—Track Minimum and Maximum Profit!"**\n\n- "Track minimum" → `min_price = min(min_price, price)`\n- "Calculate profit" → `current_profit = price - min_price`\n- "Update maximum" → `max_profit = max(max_profit, current_profit)`',
-      code: `def maxProfit(prices):
-    if not prices:
-        return 0
-        
-    max_profit = 0
-    min_price = float('inf')
-    
-    for price in prices:
-        min_price = min(min_price, price)
-        current_profit = price - min_price
-        max_profit = max(max_profit, current_profit)
-    
-    return max_profit
-
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-    }
-  ],
-  linkedlist: [
-    {
-      title: 'Reverse Linked List',
-      difficulty: 'Easy',
-      question: 'Given the head of a singly linked list, reverse the list, and return the reversed list.',
-      hint: 'Use three pointers to track the previous, current, and next nodes.',
-      oneLiner: 'Iteratively reverse pointers using prev, curr, and next references.',
-      threeLiner: 'We maintain three pointers: previous, current, and next.\nFor each node, we save the next node, then reverse the current pointer.\nWe then move previous and current pointers forward.',
-      mnemonic: '🔄 **"Three-Pointer Dance—Save Next, Flip Direction, Move Forward!"**\n\n- "Save next" → `next_temp = current.next`\n- "Reverse pointer" → `current.next = prev`\n- "Move forward" → `prev = current, current = next_temp`',
-      code: `def reverseList(head):
-    prev = None
-    current = head
-    
-    while current:
-        next_temp = current.next
-        current.next = prev
-        prev = current
-        current = next_temp
-        
-    return prev
-
-# Time Complexity: O(n)
-# Space Complexity: O(1)`
-    }
-  ],
-  trees: [
-    {
-      title: 'Maximum Depth of Binary Tree',
-      difficulty: 'Easy',
-      question: 'Given the root of a binary tree, return its maximum depth. A binary tree\'s maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.',
-      hint: 'Use recursion to find the depth of the left and right subtrees.',
-      oneLiner: 'Recursively find max depth of left and right subtrees plus 1.',
-      threeLiner: 'We recursively calculate the depth of both left and right subtrees.\nWe take the maximum of these two depths.\nWe add 1 to account for the current node.',
-      mnemonic: '🌲 **"Recursive Height—Max of Children Plus One!"**\n\n- "Base case" → `if not root: return 0`\n- "Get depths" → `left_depth = maxDepth(root.left), right_depth = maxDepth(root.right)`\n- "Find max" → `return max(left_depth, right_depth) + 1`',
-      code: `def maxDepth(root):
-    if not root:
-        return 0
-        
-    left_depth = maxDepth(root.left)
-    right_depth = maxDepth(root.right)
-    
-    return max(left_depth, right_depth) + 1
-
-# Time Complexity: O(n)
-# Space Complexity: O(h) where h is the height of the tree`
-    }
-  ],
-  tries: [
-    {
-      title: 'Implement Trie (Prefix Tree)',
-      difficulty: 'Medium',
-      question: 'Implement a trie with insert, search, and startsWith methods.',
-      hint: 'Use a tree structure where each node has a dictionary of children.',
-      oneLiner: 'Use a nested dictionary tree with end-of-word markers.',
-      threeLiner: 'We create a tree structure where each node has a dictionary for its children.\nWe mark the end of words with a special symbol.\nFor search and prefix search, we navigate the tree letter by letter.',
-      mnemonic: '🌳 **"Dictionary Tree—Navigate Character by Character!"**\n\n- "Node structure" → `self.children = {}, self.is_end_of_word = False`\n- "Insert path" → `node = node.children.setdefault(char, TrieNode())`\n- "Check prefix" → `for char in prefix: if char not in node.children: return False`',
-      code: `class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.is_end_of_word = False
-
-class Trie:
-    def __init__(self):
-        self.root = TrieNode()
-        
-    def insert(self, word):
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                node.children[char] = TrieNode()
-            node = node.children[char]
-        node.is_end_of_word = True
-        
-    def search(self, word):
-        node = self.root
-        for char in word:
-            if char not in node.children:
-                return False
-            node = node.children[char]
-        return node.is_end_of_word
-        
-    def startsWith(self, prefix):
-        node = self.root
-        for char in prefix:
-            if char not in node.children:
-                return False
-            node = node.children[char]
-        return True
-
-# Time Complexity: O(m) for all operations, where m is the length of the word
-# Space Complexity: O(m * n) where n is the number of words`
-    }
-  ],
-  backtracking: [
-    {
-      title: 'Subsets',
-      difficulty: 'Medium',
-      question: 'Given an integer array nums of unique elements, return all possible subsets (the power set). The solution set must not contain duplicate subsets.',
-      hint: 'Use backtracking to generate all possible combinations.',
-      oneLiner: 'Use backtracking to include or exclude each number.',
-      threeLiner: 'We pick numbers one by one.\nEach time, we decide to keep it or skip it.\nThat gives us all possible combinations.',
-      mnemonic: '🧩 **"Decision Tree—Include or Exclude Each Element!"**\n\n- "Start with empty list" → `res = [[]]`\n- "Try adding" → `dfs(index + 1, path + [nums[i]])`\n- "Try skipping" → `dfs(index + 1, path)`',
-      code: `def subsets(nums):
-    result = []
-    
-    def backtrack(start, current):
-        result.append(current[:])
-        
-        for i in range(start, len(nums)):
-            current.append(nums[i])
-            backtrack(i + 1, current)
-            current.pop()
-    
-    backtrack(0, [])
-    return result
-
-# Time Complexity: O(n * 2^n)
-# Space Complexity: O(n) - depth of the recursion stack`
-    },
-    {
-      title: 'Combination Sum',
-      difficulty: 'Medium',
-      question: 'Given an array of distinct integers candidates and a target integer target, return a list of all unique combinations of candidates where the chosen numbers sum to target. You may return the combinations in any order. The same number may be chosen from candidates an unlimited number of times.',
-      hint: 'Use backtracking with the option to reuse elements.',
-      oneLiner: 'Use DFS to try combinations, reusing the same number.',
-      threeLiner: 'We keep adding numbers until we hit the target.\nWe can use the same number again.\nIf it\'s too much, we stop and go back.',
-      mnemonic: '🎯 **"Target Sum Build—Use Same Number Multiple Times!"**\n\n- "Base case" → `if target == 0: add path`\n- "Too big" → `if target < 0: return`\n- "Try again" → `dfs(i, path + [candidates[i]], target - candidates[i])`',
-      code: `def combinationSum(candidates, target):
-    result = []
-    
-    def dfs(start, path, remaining):
-        if remaining == 0:
-            result.append(path[:])
-            return
-        if remaining < 0:
-            return
-            
-        for i in range(start, len(candidates)):
-            path.append(candidates[i])
-            # We can reuse the same element, so we pass i instead of i+1
-            dfs(i, path, remaining - candidates[i])
-            path.pop()
-    
-    dfs(0, [], target)
-    return result
-
-# Time Complexity: O(N^(T/M)) where T is target and M is minimum value
-# Space Complexity: O(T/M) - recursion depth`
-    },
-    {
-      title: 'Combination Sum II',
-      difficulty: 'Medium',
-      question: 'Given a collection of candidate numbers (candidates) and a target number (target), find all unique combinations in candidates where the candidate numbers sum to target. Each number in candidates may only be used once in the combination.',
-      hint: 'Sort and use backtracking with duplicate skipping.',
-      oneLiner: 'Like Combination Sum but skip duplicates and don\'t reuse elements.',
-      threeLiner: 'We can\'t use the same number again.\nWe also skip duplicates to avoid repeat combos.\nWe keep trying until the sum matches the target.',
-      mnemonic: '🎯 **"Target Sum with Unique Paths—Skip Duplicates!"**\n\n- "Sort first" → `candidates.sort()`\n- "Skip duplicates" → `if i > start and candidates[i] == candidates[i - 1]: continue`\n- "DFS without reuse" → `dfs(i + 1, path + [candidates[i]], target - candidates[i])`',
-      code: `def combinationSum2(candidates, target):
-    candidates.sort()  # Sort to handle duplicates
-    result = []
-    
-    def dfs(start, path, remaining):
-        if remaining == 0:
-            result.append(path[:])
-            return
-        if remaining < 0:
-            return
-            
-        for i in range(start, len(candidates)):
-            # Skip duplicates
-            if i > start and candidates[i] == candidates[i - 1]:
-                continue
+                topicCard.innerHTML = `
+                    <h3>${topic.name}</h3>
+                    <p>${problemCount > 0 ? `${problemCount} problems` : 'Coming soon'}</p>
+                `;
                 
-            path.append(candidates[i])
-            # Move to next index (i+1) as we can't reuse same element
-            dfs(i + 1, path, remaining - candidates[i])
-            path.pop()
-    
-    dfs(0, [], target)
-    return result
+                topicGrid.appendChild(topicCard);
+            });
+        }
 
-# Time Complexity: O(2^N) in worst case
-# Space Complexity: O(N) - recursion depth`
-    }
-  ],
-  heap: [
-    {
-      title: 'Kth Largest Element in a Stream',
-      difficulty: 'Easy',
-      question: 'Design a class to find the kth largest element in a stream. Note that it is the kth largest element in the sorted order, not the kth distinct element.',
-      hint: 'Maintain a min heap of size k.',
-      oneLiner: 'Maintain a min-heap of size k to track the Kth largest element.',
-      threeLiner: 'We keep the biggest k numbers in a bucket.\nWe throw out the smallest one if we get too many.\nThe Kth largest is always the smallest in our bucket.',
-      mnemonic: '📊 **"K-Sized Bucket—Smallest at Top is Kth Largest!"**\n\n- "Push to heap" → `heapq.heappush(self.heap, val)`\n- "Pop if oversized" → `if len(self.heap) > k: heapq.heappop(self.heap)`\n- "Return Kth" → `return self.heap[0]`',
-      code: `import heapq
-
-class KthLargest:
-    def __init__(self, k, nums):
-        self.k = k
-        self.heap = nums
-        heapq.heapify(self.heap)
-        
-        # Trim heap to size k
-        while len(self.heap) > k:
-            heapq.heappop(self.heap)
+        // Select a topic
+        function selectTopic(topicId) {
+            console.log("Selected topic:", topicId);
+            selectedTopicId = topicId;
+            currentProblemIndex = 0;
             
-    def add(self, val):
-        heapq.heappush(self.heap, val)
-        if len(self.heap) > self.k:
-            heapq.heappop(self.heap)
-        return self.heap[0]
+            topicSection.style.display = 'none';
+            flashcardSection.style.display = 'block';
+            
+            const topic = topics.find(t => t.id === topicId);
+            currentTopic.textContent = topic.name;
+            
+            loadProblem();
+        }
 
-# Time Complexity: O(log k) per add operation
-# Space Complexity: O(k)`
-    },
-    {
-      title: 'Last Stone Weight',
-      difficulty: 'Easy',
-      question: 'We have a collection of stones, each stone has a positive integer weight. Each turn, we choose the two heaviest stones and smash them together. If the stones have the same weight, both stones are destroyed. If not, the smaller gets destroyed, and the bigger reduces by the smaller\'s weight. Return the weight of the last stone, or 0 if there are no stones left.',
-      hint: 'Use a max heap to always get the heaviest stones.',
-      oneLiner: 'Use a max-heap (invert numbers) to always smash the heaviest stones.',
-      threeLiner: 'We take the two heaviest stones.\nIf they\'re different, we smash and put the leftover back.\nWe keep doing that until one or zero stones are left.',
-      mnemonic: '🪨 **"Stone Smashing—Heaviest Pair, Keep Difference!"**\n\n- "Max heap" → `heap = [-x for x in stones]`\n- "Pop two largest" → `a = -heapq.heappop(heap), b = -heapq.heappop(heap)`\n- "Push back if diff" → `if a != b: heapq.heappush(heap, -(a - b))`',
-      code: `import heapq
+        // Load current problem
+        function loadProblem() {
+            console.log("Loading problem...");
+            const currentProblems = problems[selectedTopicId];
+            if (!currentProblems || currentProblems.length === 0) {
+                console.error("No problems found for topic", selectedTopicId);
+                return;
+            }
+            
+            const problem = currentProblems[currentProblemIndex];
+            console.log("Current problem:", problem);
+            
+            // Update counter and navigation
+            problemCounter.textContent = `Card ${currentProblemIndex + 1} of ${currentProblems.length}`;
+            prevButton.disabled = currentProblemIndex === 0;
+            nextButton.disabled = currentProblemIndex === currentProblems.length - 1;
+            
+            // Reset card state
+            flashcard.classList.remove('flipped');
+            
+            // Update front of card
+            document.getElementById('card-title').textContent = problem.title;
+            document.getElementById('card-title-back').textContent = `${problem.title} - Solution`;
+            
+            // Set difficulty badge
+            const difficultyBadge = document.getElementById('card-difficulty');
+            difficultyBadge.textContent = problem.difficulty;
+            difficultyBadge.className = 'difficulty';
+            
+            if (problem.difficulty === 'Easy') {
+                difficultyBadge.classList.add('easy');
+            } else if (problem.difficulty === 'Medium') {
+                difficultyBadge.classList.add('medium');
+            } else {
+                difficultyBadge.classList.add('hard');
+            }
+            
+            // Update content
+            questionContent.textContent = problem.question;
+            hintContent.textContent = problem.hint;
+            oneLinerContent.textContent = problem.oneLiner || "No strategy available";
+            threeLinerContent.textContent = problem.threeLiner || "No simple explanation available";
+            mnemonicContent.innerHTML = problem.mnemonic || "No mnemonic available";
+            document.getElementById('code-block').textContent = problem.code || "No code available";
+            
+            // Reset tabs
+            resetTabs();
+        }
 
-def lastStoneWeight(stones):
-    # Convert to negative for max-heap simulation
-    heap = [-s for s in stones]
-    heapq.heapify(heap)
-    
-    while len(heap) > 1:
-        # Get two heaviest stones
-        first = -heapq.heappop(heap)
-        second = -heapq.heappop(heap)
+        // Reset tab selection
+        function resetTabs() {
+            // Front tabs
+            questionTab.classList.add('active');
+            hintTab.classList.remove('active');
+            questionContent.classList.add('active');
+            hintContent.classList.remove('active');
+            
+            // Back tabs
+            oneLinerTab.classList.add('active');
+            threeLinerTab.classList.remove('active');
+            mnemonicTab.classList.remove('active');
+            codeTab.classList.remove('active');
+            oneLinerContent.classList.add('active');
+            threeLinerContent.classList.remove('active');
+            mnemonicContent.classList.remove('active');
+            codeContent.classList.remove('active');
+        }
+
+        // Event listeners
+        backButton.addEventListener('click', () => {
+            flashcardSection.style.display = 'none';
+            topicSection.style.display = 'block';
+        });
         
-        # If not equal, put back difference
-        if first != second:
-            heapq.heappush(heap, -(first - second))
-    
-    # Return last stone or 0 if none left
-    return -heap[0] if heap else 0
-
-# Time Complexity: O(n log n)
-# Space Complexity: O(n)`
-    }
-  ]
-}
+        prevButton.addEventListener('click', () => {
+            if (currentProblemIndex > 0) {
+                currentProblemIndex--;
+                loadProblem();
+            }
+        });
+        
+        nextButton.addEventListener('click', () => {
+            const currentProblems = problems[selectedTopicId];
+            if (currentProblemIndex < currentProblems.length - 1) {
+                currentProblemIndex++;
+                loadProblem();
+            }
+        });
+        
+        flashcard.addEventListener('click', () => {
+            flashcard.classList.toggle('flipped');
+        });
+        
+        // Front tab switching
+        questionTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            questionTab.classList.add('active');
+            hintTab.classList.remove('active');
+            questionContent.classList.add('active');
+            hintContent.classList.remove('active');
+        });
+        
+        hintTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            hintTab.classList.add('active');
+            questionTab.classList.remove('active');
+            hintContent.classList.add('active');
+            questionContent.classList.remove('active');
+        });
+        
+        // Back tab switching
+        oneLinerTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            oneLinerTab.classList.add('active');
+            threeLinerTab.classList.remove('active');
+            mnemonicTab.classList.remove('active');
+            codeTab.classList.remove('active');
+            oneLinerContent.classList.add('active');
+            threeLinerContent.classList.remove('active');
+            mnemonicContent.classList.remove('active');
+            codeContent.classList.remove('active');
+        });
+        
+        threeLinerTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            threeLinerTab.classList.add('active');
+            oneLinerTab.classList.remove('active');
+            mnemonicTab.classList.remove('active');
+            codeTab.classList.remove('active');
+            threeLinerContent.classList.add('active');
+            oneLinerContent.classList.remove('active');
+            mnemonicContent.classList.remove('active');
+            codeContent.classList.remove('active');
+        });
+        
+        mnemonicTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            mnemonicTab.classList.add('active');
+            oneLinerTab.classList.remove('active');
+            threeLinerTab.classList.remove('active');
+            codeTab.classList.remove('active');
+            mnemonicContent.classList.add('active');
+            oneLinerContent.classList.remove('active');
+            threeLinerContent.classList.remove('active');
+            codeContent.classList.remove('active');
+        });
+        
+        codeTab.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip
+            codeTab.classList.add('active');
+            oneLinerTab.classList.remove('active');
+            threeLinerTab.classList.remove('active');
+            mnemonicTab.classList.remove('active');
+            codeContent.classList.add('active');
+            oneLinerContent.classList.remove('active');
+            threeLinerContent.classList.remove('active');
+            mnemonicContent.classList.remove('active');
+        });
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM loaded, initializing app");
+            populateTopics();
+        });
+        
+        // Additional initialization in case DOMContentLoaded already fired
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            console.log("Document already loaded, initializing now");
+            populateTopics();
+        }
+    </script>
+</body>
+</html>
